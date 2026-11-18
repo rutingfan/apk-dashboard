@@ -139,7 +139,7 @@ tbody tr:hover{background:#fafcff}
   <!-- 趋势 + 站群 -->
   <div class="grid2">
     <div class="sec"><h3>消耗与 ROI 走势</h3><div class="hi">柱=日消耗（$）· 线=当日 ROI%（按素材口径）</div><div class="chart" id="cTrend" style="height:290px"></div></div>
-    <div class="sec"><h3>站群对比</h3><div class="hi">APK / QUIZ / 其他 站群的消耗与 ROI</div><div class="chart" id="cGroup" style="height:290px"></div></div>
+    <div class="sec"><h3 id="hGroup">站群对比</h3><div class="hi" id="hiGroup">APK / QUIZ / 其他 站群的消耗与 ROI</div><div class="chart" id="cGroup" style="height:290px"></div></div>
   </div>
 
   <!-- 渠道 x 站群 + 方向 -->
@@ -372,21 +372,37 @@ function render(){
          label:{formatter:'盈亏线 100%',fontSize:10,color:'#c0392b',position:'insideEndTop'}}]}}
     ]});
 
-  // 站群
-  const gs=[...new Set(Object.values(D.groups))].filter(g=>S.group==='全部'||g===S.group)
-    .sort((a,b)=>(A.byGroup.get(b)||{sp:0}).sp-(A.byGroup.get(a)||{sp:0}).sp);
+  // 站群 / 站点 / 方向 —— 按筛选层级自动下钻
+  let dimMap, dimTitle, dimHi;
+  if(S.site!=='全部'){
+    dimMap=new Map([...A.byTheme.entries()].filter(x=>x[1].sp>0).sort((a,b)=>b[1].sp-a[1].sp).slice(0,8));
+    dimTitle='方向对比（'+S.site+'）'; dimHi='当前站点下消耗最高的 8 个方向';
+  }else if(S.group!=='全部'){
+    dimMap=new Map([...A.bySite.entries()].filter(x=>x[1].sp>0).sort((a,b)=>b[1].sp-a[1].sp));
+    dimTitle='站点对比（'+S.group+'）'; dimHi='当前站群下各站点的消耗与 ROI';
+  }else{
+    dimMap=new Map([...A.byGroup.entries()].filter(x=>x[1].sp>0).sort((a,b)=>b[1].sp-a[1].sp));
+    dimTitle='站群对比'; dimHi='APK / QUIZ / 其他 站群的消耗与 ROI';
+  }
+  document.getElementById('hGroup').textContent=dimTitle;
+  document.getElementById('hiGroup').textContent=dimHi;
+
+  const gs=[...dimMap.keys()];
+  const getD=k=>dimMap.get(k)||{sp:0,rv:0};
+  const shortName=k=>k.length>12?k.slice(0,11)+'…':k;
   mk('cGroup',{
     tooltip:{trigger:'axis',axisPointer:{type:'shadow'},
-      formatter:p=>{const g=p[0].name;const d=A.byGroup.get(g)||{sp:0,rv:0};const roi=d.sp?d.rv/d.sp:0;
+      formatter:p=>{const g=p[0].name;const d=getD(gs[p[0].dataIndex]);const roi=d.sp?d.rv/d.sp:0;
         return g+'<br/>消耗 <b>'+fmtMoney2(d.sp)+'</b><br/>收入 <b>'+fmtMoney2(d.rv)+'</b><br/>ROI <b style="color:'+roiHex(roi)+'">'+(roi*100).toFixed(1)+'%</b>';}},
-    grid:{left:60,right:24,top:22,bottom:26},
-    xAxis:{type:'category',data:gs,...AXIS},
+    grid:{left:60,right:24,top:22,bottom:44},
+    xAxis:{type:'category',data:gs.map(shortName),...AXIS,
+      axisLabel:{color:'#6b7787',fontSize:10.5,interval:0,rotate:gs.length>4?28:0}},
     yAxis:{type:'value',...AXIS},
-    series:[{type:'bar',data:gs.map(g=>{const d=A.byGroup.get(g)||{sp:0,rv:0};const roi=d.sp?d.rv/d.sp:0;
+    series:[{type:'bar',data:gs.map(g=>{const d=getD(g);const roi=d.sp?d.rv/d.sp:0;
         return {value:+d.sp.toFixed(2),itemStyle:{color:roi>=1?'#4caf82':'#e0736b',borderRadius:[4,4,0,0]}};}),
       barMaxWidth:52,
-      label:{show:true,position:'top',fontSize:11,fontWeight:700,
-        formatter:p=>{const g=gs[p.dataIndex];const d=A.byGroup.get(g)||{sp:0,rv:0};
+      label:{show:true,position:'top',fontSize:10.5,fontWeight:700,
+        formatter:p=>{const d=getD(gs[p.dataIndex]);
           return (d.sp?((d.rv/d.sp)*100).toFixed(1):'0')+'%';},
         color:'#1b2430'}}]});
 
