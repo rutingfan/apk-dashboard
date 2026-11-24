@@ -128,7 +128,7 @@ tbody tr:hover{background:#fafcff}
   <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px">
     <div>
       <h1>图片竞品测试 · 投放看板</h1>
-      <div class="sub">品类口径：创意说明含「图片竞品测试 / 竞对 / 地图」的图片素材 · ROI &gt;100% 为盈利，&lt;100% 为亏损</div>
+      <div class="sub">品类口径：创意说明含「图片竞品测试 / 竞对 / 地图」的图片素材 · 收入口径：<b>校准收入</b>（calib_revenue + rsoc_revenue，对齐 Metabase 大素材看板）· ROI &gt;100% 为盈利，&lt;100% 为亏损</div>
     </div>
     <div class="sub" id="genAt"></div>
   </div>
@@ -542,7 +542,7 @@ function render(){
 
   // 备注
   document.getElementById('note').innerHTML=
-    '口径：<code>ROI = 收入 / 消耗</code>；<code>回正率 = 期内按素材聚合 ROI≥1 的素材数 / 有消耗素材数</code>；'+
+    '口径：<code>ROI = 收入 / 消耗</code>，其中<b>收入 = calib_revenue + rsoc_revenue（校准收入）</b>，与 Metabase「大素材数据看板-校准数据」一致；<code>回正率 = 期内按素材聚合 ROI≥1 的素材数 / 有消耗素材数</code>；'+
     '素材方向由创意说明关键词归类（地图 / 超级App / 痴呆认知 / 爱情玫瑰 / 知识怀旧 …）。'+
     '时间区间与筛选条件变化时，全部图表、表格与结论实时重算。';
 
